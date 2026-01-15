@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You have a letter...</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Cormorant Garamond', Georgia, serif; 
+      min-height: 100vh; 
+      overflow-x: hidden;
+      background: #F5F0EB;
+    }
+    .font-script { font-family: 'Great Vibes', cursive; }
+    
+    @keyframes float { 
+      0%, 100% { transform: translateY(0) rotate(0deg); } 
+      50% { transform: translateY(-20px) rotate(5deg); } 
+    }
+    @keyframes pulse { 
+      0%, 100% { transform: scale(1); opacity: 1; } 
+      50% { transform: scale(1.1); opacity: 0.8; } 
+    }
+    @keyframes fadeInUp { 
+      from { opacity: 0; transform: translateY(30px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+    @keyframes flapOpen { 
+      0% { transform: rotateX(0deg); } 
+      100% { transform: rotateX(180deg); } 
+    }
+    @keyframes sealBreak { 
+      0% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; } 
+      100% { transform: translateX(-50%) scale(0) rotate(180deg); opacity: 0; } 
+    }
+    @keyframes letterRise { 
+      0% { transform: translateY(0); } 
+      100% { transform: translateY(-120%); opacity: 0; } 
+    }
+
+    /* Floating Petals */
+    .petal {
+      position: fixed;
+      pointer-events: none;
+      border-radius: 50% 40% 50% 40%;
+      opacity: 0.5;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    /* Start Screen */
+    .start-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(45, 74, 62, 0.95);
+      z-index: 50;
+      cursor: pointer;
+    }
+    .start-screen h2 {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      padding: 0 2rem;
+      color: #FDF8F5;
+    }
+    .start-screen p {
+      font-size: 1.25rem;
+      font-style: italic;
+      margin-bottom: 2.5rem;
+      color: #D4A5A5;
+    }
+    .heart-circle {
+      width: 5rem;
+      height: 5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #C9A962;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .heart-circle svg {
+      width: 2.5rem;
+      height: 2.5rem;
+      fill: #C9A962;
+    }
+
+    /* Envelope */
+    .envelope-container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F5F0EB;
+      z-index: 40;
+    }
+    .envelope-wrapper {
+      width: 100%;
+      max-width: 28rem;
+      padding: 0 1.25rem;
+    }
+    .envelope {
+      position: relative;
+      aspect-ratio: 1.5 / 1;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+    .envelope-back {
+      position: absolute;
+      inset: 0;
+      border-radius: 0.5rem;
+      background: linear-gradient(180deg, #E8DFD5 0%, #DED4C8 100%);
+      box-shadow: 0 15px 50px rgba(114, 47, 55, 0.15);
+    }
+    .letter-preview {
+      position: absolute;
+      top: 15%;
+      left: 8%;
+      width: 84%;
+      height: 70%;
+      background: linear-gradient(180deg, #FFFEF9 0%, #F9F6F0 100%);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .letter-preview span {
+      font-size: 1.5rem;
+      color: #722F37;
+      opacity: 0.6;
+    }
+    .envelope-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60%;
+      background: linear-gradient(180deg, #DED4C8 0%, #E8DFD5 100%);
+      clip-path: polygon(0 0, 50% 100%, 100% 0);
+      transform-origin: top center;
+      transform-style: preserve-3d;
+    }
+    .wax-seal {
+      position: absolute;
+      left: 50%;
+      top: calc(60% - 30px);
+      transform: translateX(-50%);
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #9B3D47, #722F37 50%, #5A1F26);
+      box-shadow: 0 4px 20px rgba(114, 47, 55, 0.5), inset 0 2px 4px rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wax-seal span {
+      font-size: 1.125rem;
+      color: #FDF8F5;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .tap-hint {
+      text-align: center;
+      margin-top: 2rem;
+      font-style: italic;
+      font-size: 1.125rem;
+      color: #2D4A3E;
+      opacity: 0.8;
+    }
+
+    /* Letter */
+    .letter-container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-y: auto;
+      background: #F5F0EB;
+      z-index: 60;
+    }
+    .letter {
+      width: 100%;
+      max-width: 38rem;
+      border-radius: 0.5rem;
+      padding: 3rem 2.5rem;
+      margin: 1rem 0;
+      background: #FFFEFA;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+      animation: fadeInUp 1s ease-out;
+    }
+    .letter-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .letter-icon {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+    }
+    .letter-greeting {
+      font-size: 3rem;
+      color: #2D4A3E;
+    }
+    .letter-body {
+      font-size: 1.125rem;
+      color: #4A4A4A;
+      line-height: 1.9;
+    }
+    .letter-body p {
+      margin-bottom: 1.5rem;
+    }
+    .letter-body .personal-note {
+      font-style: italic;
+      color: #5A5A5A;
+    }
+    
+    /* Color Swatches */
+    .color-swatches {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 2.5rem 0;
+      flex-wrap: wrap;
+    }
+    .swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .swatch-circle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .swatch-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #888;
+      font-weight: 500;
+    }
+    
+    .letter-closing {
+      text-align: left;
+      margin-top: 2.5rem;
+      font-size: 1.125rem;
+      color: #4A4A4A;
+    }
+    .letter-signature {
+      font-size: 2.5rem;
+      margin-top: 0.5rem;
+      color: #722F37;
+    }
+    .letter-footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid #E5E0DB;
+    }
+    .letter-date {
+      font-style: italic;
+      font-size: 1rem;
+      color: #9CAF88;
+    }
+    .letter-hashtag {
+      font-size: 1.5rem;
+      margin-top: 0.5rem;
+      color: #722F37;
+    }
+
+    .hidden { display: none !important; }
+    .flap-open { animation: flapOpen 0.8s ease-out forwards; }
+    .seal-break { animation: sealBreak 0.6s ease-out forwards; }
+    .letter-rise { animation: letterRise 1s ease-out forwards; }
+
+    @media (min-width: 768px) {
+      .start-screen h2 { font-size: 4rem; }
+      .letter { padding: 4rem 3.5rem; }
+      .letter-greeting { font-size: 3.5rem; }
+      .letter-body { font-size: 1.2rem; }
+      .swatch-circle { width: 60px; height: 60px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Petals Background -->
+  <div id="petals"></div>
+
+  <!-- Start Screen -->
+  <div id="startScreen" class="start-screen">
+    <h2 class="font-script">You have a letter...</h2>
+    <p>tap to open</p>
+    <div class="heart-circle">
+      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </div>
+  </div>
+
+  <!-- Envelope -->
+  <div id="envelopeContainer" class="envelope-container hidden">
+    <div class="envelope-wrapper">
+      <div class="envelope" id="envelope">
+        <div class="envelope-back"></div>
+        <div class="letter-preview" id="letterPreview">
+          <span class="font-script">For you...</span>
+        </div>
+        <div class="envelope-flap" id="envelopeFlap"></div>
+        <div class="wax-seal" id="waxSeal">
+          <span class="font-script">F & P</span>
+        </div>
+      </div>
+      <p class="tap-hint" id="tapHint">tap the seal to open</p>
+    </div>
+  </div>
+
+  <!-- Letter -->
+  <div id="letterContainer" class="letter-container hidden">
+    <div class="letter">
+      <div class="letter-header">
+        <div class="letter-icon">💌</div>
+        <p class="font-script letter-greeting">My dearest Angela,</p>
+      </div>
+      <div class="letter-body">
+        <p class="personal-note">My bestie. What more can I say? You know me inside and out, and I can't imagine walking into this new chapter without you cheering me on. Thank you for being you.</p>
+        <p>Phil and I are keeping things intimate. I'll have just two bridesmaids standing beside me, but you are absolutely one of my girls, and I'd love for that to show.</p>
+        <p>If you're open to it, I'd love you to wear something in one of our wedding colours:</p>
+        
+        <div class="color-swatches">
+          <div class="swatch">
+            <div class="swatch-circle" style="background: #722F37;"></div>
+            <span class="swatch-label">Burgundy</span>
+          </div>
+          <div class="swatch">
+            <div class="swatch-circle" style="background: #D4A5A5;"></div>
+            <span class="swatch-label">Blush Pink</span>
+          </div>
+          <div class="swatch">
+            <div class="swatch-circle" style="background: #2D4A3E;"></div>
+            <span class="swatch-label">Forest Green</span>
+          </div>
+          <div class="swatch">
+            <div class="swatch-circle" style="background: #C9A962;"></div>
+            <span class="swatch-label">Muted Gold</span>
+          </div>
+        </div>
+
+        <p>No need to match anyone else. Pick whichever shade makes you feel beautiful and a style you love. You'll all look gorgeous together without being 'matching bridesmaids,' which feels right for us.</p>
+        <p>No pressure on where you shop or what you spend. It's about having the people I love most looking like they belong to our day.</p>
+        <p>Can't wait to celebrate with you.</p>
+      </div>
+      <div class="letter-closing">
+        <p>All my love,</p>
+        <p class="font-script letter-signature">Flo x</p>
+      </div>
+      <div class="letter-footer">
+        <p class="letter-date">11th July 2026</p>
+        <p class="font-script letter-hashtag">LovePhiled</p>
+      </div>
+    </div>
+  </div>
+
+  <audio id="bgMusic" loop>
+    <source src="https://files.catbox.moe/czzsen.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // Create scattered petals with wedding colours
+    const petalsContainer = document.getElementById('petals');
+    const petalColors = [
+      { bg: '#722F37', opacity: 0.3 },  // burgundy
+      { bg: '#D4A5A5', opacity: 0.4 },  // blush pink
+      { bg: '#2D4A3E', opacity: 0.25 }, // forest green
+      { bg: '#C9A962', opacity: 0.35 }, // muted gold
+      { bg: '#E8DFD5', opacity: 0.5 }   // cream
+    ];
+    
+    for (let i = 0; i < 25; i++) {
+      const petal = document.createElement('div');
+      petal.className = 'petal';
+      const color = petalColors[Math.floor(Math.random() * petalColors.length)];
+      const size = 8 + Math.random() * 20;
+      petal.style.width = size + 'px';
+      petal.style.height = size + 'px';
+      petal.style.left = (Math.random() * 100) + '%';
+      petal.style.top = (Math.random() * 100) + '%';
+      petal.style.background = color.bg;
+      petal.style.opacity = color.opacity;
+      petal.style.animationDelay = (Math.random() * 5) + 's';
+      petal.style.animationDuration = (6 + Math.random() * 6) + 's';
+      petalsContainer.appendChild(petal);
+    }
+
+    const startScreen = document.getElementById('startScreen');
+    const envelopeContainer = document.getElementById('envelopeContainer');
+    const letterContainer = document.getElementById('letterContainer');
+    const envelope = document.getElementById('envelope');
+    const envelopeFlap = document.getElementById('envelopeFlap');
+    const waxSeal = document.getElementById('waxSeal');
+    const letterPreview = document.getElementById('letterPreview');
+    const tapHint = document.getElementById('tapHint');
+    const bgMusic = document.getElementById('bgMusic');
+
+    bgMusic.volume = 0.3;
+
+    startScreen.addEventListener('click', function() {
+      bgMusic.play().catch(e => console.log('Audio blocked'));
+      startScreen.classList.add('hidden');
+      envelopeContainer.classList.remove('hidden');
+    });
+
+    envelope.addEventListener('click', function() {
+      envelopeFlap.classList.add('flap-open');
+      waxSeal.classList.add('seal-break');
+      letterPreview.classList.add('letter-rise');
+      tapHint.classList.add('hidden');
+      
+      setTimeout(function() {
+        envelopeContainer.classList.add('hidden');
+        letterContainer.classList.remove('hidden');
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
